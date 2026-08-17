@@ -114,7 +114,7 @@ All tools that operate on a document require a `document` parameter (the documen
 | `evaluate` | Evaluate a Tinderbox expression in the context of a note |
 | `get_view` | Capture a screenshot of the document's current view |
 | `get_reference` | Retrieve detailed Tinderbox reference documentation by topic |
-| `save_document` | Save a document to disk, committing any unsaved changes (confirms the write via file mtime) |
+| `save_document` | Save a document to disk on demand, confirming the write via file mtime |
 
 > **Caveat on `is_modified`:** Tinderbox's document-modified flag is not a reliable indicator of unsaved
 > changes. Agents, rules, and edicts re-dirty the document asynchronously, so `is_modified` can read `true`
@@ -146,9 +146,9 @@ The server is designed to minimize context window consumption through a two-tier
 
 | Component | Tokens | % of 200K |
 |-----------|--------|-----------|
-| Server instructions (quick reference) | ~3,050 | 1.53% |
+| Server instructions (quick reference) | ~3,120 | 1.56% |
 | Tool definitions (12 tools) | ~1,430 | 0.72% |
-| **Total always present** | **~4,480** | **2.24%** |
+| **Total always present** | **~4,550** | **2.28%** |
 
 The instructions provide a curated quick reference covering expression syntax, 30+ key attributes, action code patterns, date format codes, and 14 common gotchas.
 
@@ -168,9 +168,9 @@ The instructions provide a curated quick reference covering expression syntax, 3
 
 | Scenario | Tokens | % of 200K |
 |----------|--------|-----------|
-| Baseline (instructions + tool defs) | ~4,480 | 2.2% |
+| Baseline (instructions + tool defs) | ~4,550 | 2.3% |
 | Typical usage (+ 1-2 resources) | ~7,000-10,000 | 3.5-5% |
-| Maximum (all resources loaded) | ~30,540 | 15.3% |
+| Maximum (all resources loaded) | ~30,610 | 15.3% |
 
 Even in the worst case with every resource loaded, the server stays at roughly **15%** of a 200K context window — leaving around 169,000 tokens for the conversation.
 

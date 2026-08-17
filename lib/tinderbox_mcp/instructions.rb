@@ -140,7 +140,9 @@ Notes can have a Prototype note (set via `$Prototype`). A note inherits attribut
 
 ## Saving Changes
 
-Tinderbox does not write changes to disk automatically. Tools that modify a document (`create_note`, `set_value`, `do`, `create_link`, `create_text_link`) change only the in-memory document — the user must otherwise press Cmd-S to commit them.
+Tinderbox autosaves on its own schedule, and that autosave does write real content changes, not just window state. What it does not give you is control over *when* — you cannot tell from inside a tool call whether a given edit has reached disk yet.
+
+`save_document` makes that deterministic. Call it when the on-disk state matters: before the work is committed to version control, before handing off to another process, or when confirming a write landed.
 
 After completing a set of changes, call `save_document`:
 
@@ -177,7 +179,7 @@ A document that has never been saved to disk has no file, and saving it would op
 9. **Agents need name set after creation** — `make new agent` doesn't always respect name in properties.
 10. **Text set after creation** — set text separately after `make new note`, not in creation properties.
 11. **Semicolons in paths** — the tools use `;` as delimiter. Note paths containing `;` cannot be used in multi-note parameters.
-12. **Changes are not saved automatically** — call `save_document` after modifying a document, or the changes exist only in memory. See Saving Changes above.
+12. **Autosave timing is not yours to control** — Tinderbox autosaves real content changes on its own schedule. Call `save_document` when you need a known on-disk state (before a git commit, a handoff, or verifying a write). See Saving Changes above.
 13. **The document-modified flag lies** — `is_modified` (from `get_document`) is re-dirtied asynchronously by agents/rules and can read stale. Never use it to verify a save; use `written` from `save_document`.
 14. **Writing $Text populates NL attributes** — Tinderbox runs natural-language entity extraction on note text and fills `$NLNames`, `$NLOrganizations`, and related attributes on its own. This happens regardless of which tool wrote the text (`do`, `set_value`, and `create_note` behave identically), and depends on the content, not the write path. Expect these attributes to appear without being asked for.
 
