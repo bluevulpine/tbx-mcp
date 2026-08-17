@@ -1,6 +1,6 @@
 # An Enhanced Tinderbox MCP Server
 
-A standalone MCP (Model Context Protocol) server for [Tinderbox](https://www.eastgate.com/Tinderbox/) that provides 11 tools for reading, creating, and manipulating notes, links, and attributes via AppleScript. Unlike the MCP server bundled with Tinderbox, tbx-mcp runs as a separate process—making it usable from containers, remote environments, and any MCP-compatible client.
+A standalone MCP (Model Context Protocol) server for [Tinderbox](https://www.eastgate.com/Tinderbox/) that provides 12 tools for reading, creating, and manipulating notes, links, and attributes via AppleScript. Unlike the MCP server bundled with Tinderbox, tbx-mcp runs as a separate process—making it usable from containers, remote environments, and any MCP-compatible client.
 
 ## Requirements
 
@@ -95,7 +95,7 @@ After saving, restart Claude Code or run `/mcp` to reconnect.
 
 ### Verify
 
-Once connected, the server exposes 11 tools and 6 reference resources. In Claude Code you can verify with `/mcp` — you should see `tinderbox` listed with its tools.
+Once connected, the server exposes 12 tools and 6 reference resources. In Claude Code you can verify with `/mcp` — you should see `tinderbox` listed with its tools.
 
 ## Tools
 
@@ -114,6 +114,7 @@ All tools that operate on a document require a `document` parameter (the documen
 | `evaluate` | Evaluate a Tinderbox expression in the context of a note |
 | `get_view` | Capture a screenshot of the document's current view |
 | `get_reference` | Retrieve detailed Tinderbox reference documentation by topic |
+| `save_document` | Save a document to disk, committing any unsaved changes |
 
 The `get_reference` tool provides on-demand access to detailed documentation. Available topics: `action-attributes`, `action-functions`, `adornments`, `export-codes`, `expressions`, `system-containers`.
 
@@ -134,15 +135,15 @@ The server exposes detailed Tinderbox reference documentation as MCP resources. 
 
 The server is designed to minimize context window consumption through a two-tier architecture:
 
-### Always Present (~3,400 tokens, 1.7% of 200K)
+### Always Present (~4,000 tokens, 2.0% of 200K)
 
 | Component | Tokens | % of 200K |
 |-----------|--------|-----------|
-| Server instructions (quick reference) | ~2,300 | 1.15% |
-| Tool definitions (9 tools) | ~1,130 | 0.57% |
-| **Total always present** | **~3,430** | **1.71%** |
+| Server instructions (quick reference) | ~2,600 | 1.30% |
+| Tool definitions (12 tools) | ~1,430 | 0.72% |
+| **Total always present** | **~4,030** | **2.02%** |
 
-The instructions provide a curated quick reference covering expression syntax, 30+ key attributes, action code patterns, date format codes, and 11 common gotchas.
+The instructions provide a curated quick reference covering expression syntax, 30+ key attributes, action code patterns, date format codes, and 12 common gotchas.
 
 ### On-Demand Resources (~26,000 tokens, loaded only when needed)
 
@@ -160,11 +161,11 @@ The instructions provide a curated quick reference covering expression syntax, 3
 
 | Scenario | Tokens | % of 200K |
 |----------|--------|-----------|
-| Baseline (instructions + tool defs) | ~3,430 | 1.7% |
-| Typical usage (+ 1-2 resources) | ~6,400-9,400 | 3-5% |
-| Maximum (all resources loaded) | ~29,490 | 14.7% |
+| Baseline (instructions + tool defs) | ~4,030 | 2.0% |
+| Typical usage (+ 1-2 resources) | ~7,000-10,000 | 3.5-5% |
+| Maximum (all resources loaded) | ~30,090 | 15.0% |
 
-Even in the worst case with every resource loaded, the server stays under **15%** of a 200K context window — leaving over 170,000 tokens for the conversation.
+Even in the worst case with every resource loaded, the server stays at roughly **15%** of a 200K context window — leaving around 170,000 tokens for the conversation.
 
 ## Running Tests
 
@@ -174,13 +175,14 @@ The test suite requires Tinderbox to be running with at least one document open.
 bundle exec rake test
 ```
 
-The suite includes 59 tests covering all tools, the AppleScript helper, and cross-tool consistency checks. Test notes are prefixed with `[MCP-TEST]` and cleaned up automatically.
+The suite includes 69 tests covering all tools, the AppleScript helper, and cross-tool consistency checks. Test notes are prefixed with `[MCP-TEST]` and cleaned up automatically.
 
 ## Architecture
 
 ```
 .
 |-- Gemfile
+|-- LICENSE
 |-- Rakefile
 |-- README.md
 |-- server.rb
@@ -190,17 +192,21 @@ The suite includes 59 tests covering all tools, the AppleScript helper, and cros
 |   `-- tinderbox_mcp
 |       |-- create_link.rb
 |       |-- create_note.rb
+|       |-- create_text_link.rb
 |       |-- do_action.rb
 |       |-- evaluate.rb
 |       |-- get_document.rb
 |       |-- get_notes.rb
+|       |-- get_reference.rb
 |       |-- get_view.rb
 |       |-- instructions.rb
 |       |-- open_document.rb
+|       |-- save_document.rb
 |       `-- set_value.rb
 |-- references
 |   |-- action-attributes.md
 |   |-- action-functions.md
+|   |-- adornments.md
 |   |-- export-codes.md
 |   |-- expressions.md
 |   `-- system-containers.md
@@ -209,12 +215,14 @@ The suite includes 59 tests covering all tools, the AppleScript helper, and cros
     |-- consistency_test.rb
     |-- create_link_test.rb
     |-- create_note_test.rb
+    |-- create_text_link_test.rb
     |-- do_action_test.rb
     |-- evaluate_test.rb
     |-- get_document_test.rb
     |-- get_notes_test.rb
     |-- get_view_test.rb
     |-- open_document_test.rb
+    |-- save_document_test.rb
     |-- set_value_test.rb
     `-- test_helper.rb
 ```

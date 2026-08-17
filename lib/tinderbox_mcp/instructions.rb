@@ -138,6 +138,20 @@ To construct a URL, evaluate `$ID` on the note and build the string. These URLs 
 
 Notes can have a Prototype note (set via `$Prototype`). A note inherits attribute values from its prototype unless it has its own local value. Notes can always override inherited values. Prototypes can themselves have prototypes, forming an inheritance chain. By convention, prototype notes set `$IsPrototype` to true and live in the `/Prototypes` container.
 
+## Saving Changes
+
+Tinderbox does not write changes to disk automatically. Tools that modify a document (`create_note`, `set_value`, `do`, `create_link`, `create_text_link`) change only the in-memory document — the user must otherwise press Cmd-S to commit them.
+
+After completing a set of changes, call `save_document`:
+
+```
+save_document(document: "MyDoc")
+```
+
+It reports `was_modified` (whether there were unsaved changes) and `still_modified` (should be `"false"` after a successful save). Prefer one save at the end of a batch of edits over a save after every individual change.
+
+A document that has never been saved to disk has no file, and saving it would open a modal Save As dialog that blocks the server. `save_document` detects this and returns an error instead — ask the user to save the document manually once to choose a location.
+
 ## Important Gotchas
 
 1. **`evaluate` always returns text** — even for numbers/booleans. `$WordCount` returns `"42"` not `42`.
@@ -151,6 +165,7 @@ Notes can have a Prototype note (set via `$Prototype`). A note inherits attribut
 9. **Agents need name set after creation** — `make new agent` doesn't always respect name in properties.
 10. **Text set after creation** — set text separately after `make new note`, not in creation properties.
 11. **Semicolons in paths** — the tools use `;` as delimiter. Note paths containing `;` cannot be used in multi-note parameters.
+12. **Changes are not saved automatically** — call `save_document` after modifying a document, or the changes exist only in memory. See Saving Changes above.
 
 ## Detailed Reference
 

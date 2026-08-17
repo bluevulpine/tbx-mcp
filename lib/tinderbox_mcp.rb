@@ -9,6 +9,7 @@ require_relative 'tinderbox_mcp/do_action'
 require_relative 'tinderbox_mcp/evaluate'
 require_relative 'tinderbox_mcp/get_view'
 require_relative 'tinderbox_mcp/get_reference'
+require_relative 'tinderbox_mcp/save_document'
 
 require 'apple_script_helper'
 
