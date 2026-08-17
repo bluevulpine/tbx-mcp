@@ -1,4 +1,6 @@
 require "apple_script_helper"
+require "json"
+require "time"
 
 module TinderboxMCP
 
@@ -6,7 +8,7 @@ module TinderboxMCP
 
     extend AppleScriptHelper
 
-    description "Save a Tinderbox document to disk, committing any unsaved changes. Tinderbox does not write changes to disk automatically, so call this after any tool that modifies the document."
+    description "Save a Tinderbox document to disk, committing any unsaved changes. Tinderbox does not write changes to disk automatically, so call this after any tool that modifies the document. Confirms the write by comparing the file's modification time on disk before and after saving."
     input_schema(
       properties: {
         document: {
@@ -18,45 +20,67 @@ module TinderboxMCP
     )
 
     def self.call(document:, server_context:)
-      # A document that has never been saved has no file on disk. Calling
-      # `save` on one raises a modal Save As dialog, which blocks osascript
-      # indefinitely and wedges the server — so refuse before saving.
-      script = <<~APPLESCRIPT
-        #{script_functions}
+      file_path = resolve_file_path(document)
 
+      before = stat_of(file_path)
+      run_applescript(<<~APPLESCRIPT)
         tell application id "Cere"
-          set docRef to #{doc_target(document)}
-          set docFile to file of docRef
-
-          if docFile is missing value then
-            error "Document \\"#{esc(document)}\\" has never been saved to disk. Save it once manually (Cmd-S) to choose a location, then this tool can save it."
-          end if
-
-          set filePath to POSIX path of docFile
-
-          if modified of docRef then
-            set wasModified to "true"
-          else
-            set wasModified to "false"
-          end if
-
-          save docRef
-
-          if modified of docRef then
-            set stillModified to "true"
-          else
-            set stillModified to "false"
-          end if
-
-          return my toJSON({document_name:(name of docRef), was_modified:wasModified, still_modified:stillModified, file_path:filePath})
+          save #{doc_target(document)}
         end tell
       APPLESCRIPT
+      after = stat_of(file_path)
 
-      result = run_applescript(script)
-      MCP::Tool::Response.new([{ type: "text", text: result }])
+      # Tinderbox rewrites the file on every save, so an advanced mtime is a
+      # reliable confirmation that the save reached disk. The document's own
+      # `modified` flag is NOT reliable here — see the note below — so it is
+      # deliberately not reported.
+      written = after && before && after[:mtime] > before[:mtime]
+
+      result = {
+        "document_name" => document,
+        "file_path"     => file_path,
+        "written"       => !!written,
+        "bytes_before"  => before && before[:size],
+        "bytes_after"   => after && after[:size],
+        "mtime_before"  => before && before[:mtime].utc.iso8601(3),
+        "mtime_after"   => after && after[:mtime].utc.iso8601(3),
+      }
+
+      unless written
+        result["warning"] = "The file's modification time did not advance. The save may not have reached disk; verify the file directly."
+      end
+
+      MCP::Tool::Response.new([{ type: "text", text: JSON.generate(result) }])
     rescue StandardError => e
       MCP::Tool::Response.new([{ type: "text", text: "Error: #{e.message}" }], error: true)
     end
+
+    # Resolve the document's on-disk path, refusing documents that have none.
+    #
+    # A document that has never been saved has no file. Calling `save` on one
+    # raises a modal Save As dialog, which blocks osascript indefinitely and
+    # would wedge the server — so refuse before saving.
+    def self.resolve_file_path(document)
+      run_applescript(<<~APPLESCRIPT)
+        tell application id "Cere"
+          set docRef to #{doc_target(document)}
+          set docFile to file of docRef
+          if docFile is missing value then
+            error "Document \\"#{esc(document)}\\" has never been saved to disk. Save it once manually (Cmd-S) to choose a location, then this tool can save it."
+          end if
+          return POSIX path of docFile
+        end tell
+      APPLESCRIPT
+    end
+
+    def self.stat_of(path)
+      s = File.stat(path)
+      { mtime: s.mtime, size: s.size }
+    rescue SystemCallError
+      nil
+    end
+
+    private_class_method :resolve_file_path, :stat_of
 
   end
 

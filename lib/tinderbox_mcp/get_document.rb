@@ -6,7 +6,7 @@ module TinderboxMCP
 
     extend AppleScriptHelper
 
-    description "Get information on the current Tinderbox document, and a list of other available documents."
+    description "Get information on the current Tinderbox document, and a list of other available documents. Note: is_modified reflects Tinderbox's document-modified flag, which is unreliable — agents and rules re-dirty the document asynchronously, so it is not proof of unsaved changes and must not be used to verify a save."
     input_schema(
       properties: {}
     )
