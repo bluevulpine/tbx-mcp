@@ -9,7 +9,7 @@ module TinderboxMCP
 
     tool_name "do"
 
-    description "Perform a Tinderbox action on a Tinderbox note."
+    description "Perform a Tinderbox action on a Tinderbox note. WARNING: the note parameter is a live target, not just an evaluation context. Designator-scoped verbs act on it — delete(descendants) and delete(children) destroy everything under the note you pass, and delete(this) destroys the note itself. These return success with an empty result, so a call that removed many notes looks identical to one that did nothing. Deletions are not reliably undoable and autosave commits them to disk within seconds. Prefer an explicit path argument over a designator, and prefer moving a note by setting $Container over deleting it."
     input_schema(
       properties: {
         document: {

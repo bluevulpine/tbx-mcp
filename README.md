@@ -142,15 +142,15 @@ The server exposes detailed Tinderbox reference documentation as MCP resources. 
 
 The server is designed to minimize context window consumption through a two-tier architecture:
 
-### Always Present (~4,500 tokens, 2.2% of 200K)
+### Always Present (~5,300 tokens, 2.6% of 200K)
 
 | Component | Tokens | % of 200K |
 |-----------|--------|-----------|
-| Server instructions (quick reference) | ~3,120 | 1.56% |
+| Server instructions (quick reference) | ~3,780 | 1.89% |
 | Tool definitions (12 tools) | ~1,430 | 0.72% |
-| **Total always present** | **~4,550** | **2.28%** |
+| **Total always present** | **~5,290** | **2.65%** |
 
-The instructions provide a curated quick reference covering expression syntax, 30+ key attributes, action code patterns, date format codes, and 14 common gotchas.
+The instructions provide a curated quick reference covering expression syntax, 30+ key attributes, action code patterns, date format codes, and 15 common gotchas.
 
 ### On-Demand Resources (~26,000 tokens, loaded only when needed)
 
@@ -168,11 +168,11 @@ The instructions provide a curated quick reference covering expression syntax, 3
 
 | Scenario | Tokens | % of 200K |
 |----------|--------|-----------|
-| Baseline (instructions + tool defs) | ~4,550 | 2.3% |
-| Typical usage (+ 1-2 resources) | ~7,000-10,000 | 3.5-5% |
-| Maximum (all resources loaded) | ~30,610 | 15.3% |
+| Baseline (instructions + tool defs) | ~5,290 | 2.6% |
+| Typical usage (+ 1-2 resources) | ~7,700-10,700 | 4-5.5% |
+| Maximum (all resources loaded) | ~31,350 | 15.7% |
 
-Even in the worst case with every resource loaded, the server stays at roughly **15%** of a 200K context window — leaving around 169,000 tokens for the conversation.
+Even in the worst case with every resource loaded, the server stays under **16%** of a 200K context window — leaving around 168,000 tokens for the conversation.
 
 ## Running Tests
 

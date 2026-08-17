@@ -138,11 +138,44 @@ To construct a URL, evaluate `$ID` on the note and build the string. These URLs 
 
 Notes can have a Prototype note (set via `$Prototype`). A note inherits attribute values from its prototype unless it has its own local value. Notes can always override inherited values. Prototypes can themselves have prototypes, forming an inheritance chain. By convention, prototype notes set `$IsPrototype` to true and live in the `/Prototypes` container.
 
+## Destructive Actions — read before using `do`
+
+The `note` parameter of the `do` tool is a **live target**, not just a context for evaluation. Action functions that take a designator rather than a path operate on that note:
+
+```
+# All of these act on the note passed as `note:` — NOT on any path in the action.
+do(document: "MyDoc", note: "/Characters", action: "delete(descendants)")  # destroys every note under /Characters
+do(document: "MyDoc", note: "/Characters", action: "delete(children)")     # destroys every child of /Characters
+do(document: "MyDoc", note: "/Characters", action: "delete(this)")         # destroys /Characters itself
+```
+
+**These return success with an empty result.** The `do` tool cannot tell you what was removed — a call that deleted 59 notes is indistinguishable in its response from one that did nothing. Do not infer from a clean response that nothing happened.
+
+Deletions are **not reliably undoable** and reach disk on their own within seconds (see Saving Changes). There is no "don't save and it won't count" escape hatch.
+
+Rules:
+- Never pass a container you care about as `note:` while experimenting with an unfamiliar action.
+- Exercise any destructive verb on a disposable note used as **both** context and target first.
+- Prefer an explicit path argument (`delete("/path/to/note")`) over a designator — it acts only on that path, and does nothing if the path does not resolve.
+- Count before and after with `evaluate` if you need to know what a destructive action did.
+
+### Archiving instead of deleting
+
+Moving a note is a first-class operation and is almost always the better choice. `$Container` is the archive primitive — set it to relocate a note, non-destructively and reversibly:
+
+```
+set_value(document: "MyDoc", notes: "/path/to/note", attribute: "Container", value: "/Archive")
+```
+
+This works with `set_value` or `do` ($Container="/Archive"), moves the note with its children and links intact, and round-trips — set `$Container` back to restore it. If a document's convention is that material is archived rather than deleted, use this and do not reach for `delete`.
+
 ## Saving Changes
 
 Tinderbox autosaves on its own schedule, and that autosave does write real content changes, not just window state. What it does not give you is control over *when* — you cannot tell from inside a tool call whether a given edit has reached disk yet.
 
 `save_document` makes that deterministic. Call it when the on-disk state matters: before the work is committed to version control, before handing off to another process, or when confirming a write landed.
+
+The corollary matters for destructive work: because autosave fires on its own, **there is no "just don't save" escape hatch**. A mistaken deletion reaches disk within seconds whether or not any tool asked for a save. Treat every destructive action as immediately permanent.
 
 After completing a set of changes, call `save_document`:
 
@@ -182,6 +215,7 @@ A document that has never been saved to disk has no file, and saving it would op
 12. **Autosave timing is not yours to control** — Tinderbox autosaves real content changes on its own schedule. Call `save_document` when you need a known on-disk state (before a git commit, a handoff, or verifying a write). See Saving Changes above.
 13. **The document-modified flag lies** — `is_modified` (from `get_document`) is re-dirtied asynchronously by agents/rules and can read stale. Never use it to verify a save; use `written` from `save_document`.
 14. **Writing $Text populates NL attributes** — Tinderbox runs natural-language entity extraction on note text and fills `$NLNames`, `$NLOrganizations`, and related attributes on its own. This happens regardless of which tool wrote the text (`do`, `set_value`, and `create_note` behave identically), and depends on the content, not the write path. Expect these attributes to appear without being asked for.
+15. **`do` gives no feedback on destruction** — designator-scoped verbs like `delete(descendants)` act on the note passed as `note:`, and return success with an empty result. See Destructive Actions above. Prefer moving via `$Container` over deleting.
 
 ## Detailed Reference
 
