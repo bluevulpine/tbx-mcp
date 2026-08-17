@@ -148,7 +148,9 @@ After completing a set of changes, call `save_document`:
 save_document(document: "MyDoc")
 ```
 
-It reports `written: true` when the file's modification time advanced on disk, which confirms the save actually landed. Prefer one save at the end of a batch of edits over a save after every individual change.
+It reports `written: true` when the file's modification time advanced on disk. Prefer one save at the end of a batch of edits over a save after every individual change.
+
+`written: true` proves Tinderbox rewrote the file — **not** that a particular edit is in it. Tinderbox rewrites on every save, so a save with no pending changes also reports `written: true`. `bytes_before`/`bytes_after` help: a byte count that did not move after an edit you expected to change the text is a signal the write did not take. To confirm a specific change, read it back with `evaluate`.
 
 **Do not trust `is_modified` from `get_document` as proof of anything.** Tinderbox's document-modified flag is unreliable: agents, rules, and edicts re-dirty the document asynchronously, so it can read `true` on an idle document with nothing pending, and it can still read `false` immediately after an edit made through `do` or `set_value`. Verifying a save with "`is_modified` is now false" proves nothing — it may have read false the whole time. Use the `written` field from `save_document`, or read the value back with `evaluate`.
 
@@ -177,6 +179,7 @@ A document that has never been saved to disk has no file, and saving it would op
 11. **Semicolons in paths** — the tools use `;` as delimiter. Note paths containing `;` cannot be used in multi-note parameters.
 12. **Changes are not saved automatically** — call `save_document` after modifying a document, or the changes exist only in memory. See Saving Changes above.
 13. **The document-modified flag lies** — `is_modified` (from `get_document`) is re-dirtied asynchronously by agents/rules and can read stale. Never use it to verify a save; use `written` from `save_document`.
+14. **Writing $Text populates NL attributes** — Tinderbox runs natural-language entity extraction on note text and fills `$NLNames`, `$NLOrganizations`, and related attributes on its own. This happens regardless of which tool wrote the text (`do`, `set_value`, and `create_note` behave identically), and depends on the content, not the write path. Expect these attributes to appear without being asked for.
 
 ## Detailed Reference
 

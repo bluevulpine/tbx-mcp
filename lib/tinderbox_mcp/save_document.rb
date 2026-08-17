@@ -8,7 +8,7 @@ module TinderboxMCP
 
     extend AppleScriptHelper
 
-    description "Save a Tinderbox document to disk, committing any unsaved changes. Tinderbox does not write changes to disk automatically, so call this after any tool that modifies the document. Confirms the write by comparing the file's modification time on disk before and after saving."
+    description "Save a Tinderbox document to disk, committing any unsaved changes. Tinderbox does not write changes to disk automatically, so call this after any tool that modifies the document. Returns written:true when the file's modification time advanced, which proves Tinderbox rewrote the file — not that any particular edit is in it. Tinderbox rewrites on every save, so a no-op save also reports written:true. To confirm a specific change landed, read the value back with evaluate, or compare bytes_before/bytes_after."
     input_schema(
       properties: {
         document: {

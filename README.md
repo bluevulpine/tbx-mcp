@@ -120,7 +120,8 @@ All tools that operate on a document require a `document` parameter (the documen
 > changes. Agents, rules, and edicts re-dirty the document asynchronously, so `is_modified` can read `true`
 > on an idle document and can read stale immediately after an edit. Do not use it to verify that a save
 > succeeded — use the `written` field returned by `save_document`, which compares the file's modification
-> time on disk before and after the save.
+> time on disk before and after the save. Note that `written: true` proves Tinderbox rewrote the file, not
+> that a specific edit is in it; Tinderbox rewrites on every save, so a no-op save also reports `written: true`.
 
 The `get_reference` tool provides on-demand access to detailed documentation. Available topics: `action-attributes`, `action-functions`, `adornments`, `export-codes`, `expressions`, `system-containers`.
 
@@ -141,15 +142,15 @@ The server exposes detailed Tinderbox reference documentation as MCP resources. 
 
 The server is designed to minimize context window consumption through a two-tier architecture:
 
-### Always Present (~4,300 tokens, 2.1% of 200K)
+### Always Present (~4,500 tokens, 2.2% of 200K)
 
 | Component | Tokens | % of 200K |
 |-----------|--------|-----------|
-| Server instructions (quick reference) | ~2,850 | 1.43% |
+| Server instructions (quick reference) | ~3,050 | 1.53% |
 | Tool definitions (12 tools) | ~1,430 | 0.72% |
-| **Total always present** | **~4,280** | **2.14%** |
+| **Total always present** | **~4,480** | **2.24%** |
 
-The instructions provide a curated quick reference covering expression syntax, 30+ key attributes, action code patterns, date format codes, and 13 common gotchas.
+The instructions provide a curated quick reference covering expression syntax, 30+ key attributes, action code patterns, date format codes, and 14 common gotchas.
 
 ### On-Demand Resources (~26,000 tokens, loaded only when needed)
 
@@ -167,9 +168,9 @@ The instructions provide a curated quick reference covering expression syntax, 3
 
 | Scenario | Tokens | % of 200K |
 |----------|--------|-----------|
-| Baseline (instructions + tool defs) | ~4,280 | 2.1% |
+| Baseline (instructions + tool defs) | ~4,480 | 2.2% |
 | Typical usage (+ 1-2 resources) | ~7,000-10,000 | 3.5-5% |
-| Maximum (all resources loaded) | ~30,340 | 15.2% |
+| Maximum (all resources loaded) | ~30,540 | 15.3% |
 
 Even in the worst case with every resource loaded, the server stays at roughly **15%** of a 200K context window — leaving around 169,000 tokens for the conversation.
 
