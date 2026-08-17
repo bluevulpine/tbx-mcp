@@ -149,7 +149,13 @@ do(document: "MyDoc", note: "/Characters", action: "delete(children)")     # des
 do(document: "MyDoc", note: "/Characters", action: "delete(this)")         # destroys /Characters itself
 ```
 
-**These return success with an empty result.** The `do` tool cannot tell you what was removed — a call that deleted 59 notes is indistinguishable in its response from one that did nothing. Do not infer from a clean response that nothing happened.
+The `do` tool reports `notes_before` and `notes_after`, and adds `notes_removed` when the document shrank, so a destructive call is visible in its response:
+
+```
+{"note": "/Characters", "result": "", "notes_before": 202, "notes_after": 143, "notes_removed": 59}
+```
+
+Check `notes_removed` on any action you are not certain about. The count is document-wide, so the delta can include concurrent agent or rule activity — treat it as a signal that something was removed, not as an audit of what.
 
 Deletions are **not reliably undoable** and reach disk on their own within seconds (see Saving Changes). There is no "don't save and it won't count" escape hatch.
 
@@ -215,7 +221,7 @@ A document that has never been saved to disk has no file, and saving it would op
 12. **Autosave timing is not yours to control** — Tinderbox autosaves real content changes on its own schedule. Call `save_document` when you need a known on-disk state (before a git commit, a handoff, or verifying a write). See Saving Changes above.
 13. **The document-modified flag lies** — `is_modified` (from `get_document`) is re-dirtied asynchronously by agents/rules and can read stale. Never use it to verify a save; use `written` from `save_document`.
 14. **Writing $Text populates NL attributes** — Tinderbox runs natural-language entity extraction on note text and fills `$NLNames`, `$NLOrganizations`, and related attributes on its own. This happens regardless of which tool wrote the text (`do`, `set_value`, and `create_note` behave identically), and depends on the content, not the write path. Expect these attributes to appear without being asked for.
-15. **`do` gives no feedback on destruction** — designator-scoped verbs like `delete(descendants)` act on the note passed as `note:`, and return success with an empty result. See Destructive Actions above. Prefer moving via `$Container` over deleting.
+15. **Designator-scoped verbs act on `note:`** — `delete(descendants)` and `delete(children)` destroy everything under the note you pass; `delete(this)` destroys it. Check `notes_removed` in the response. See Destructive Actions above, and prefer moving via `$Container` over deleting.
 
 ## Detailed Reference
 

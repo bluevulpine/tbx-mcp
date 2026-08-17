@@ -110,7 +110,7 @@ All tools that operate on a document require a `document` parameter (the documen
 | `create_link` | Create a note-level link between two notes with optional link type |
 | `create_text_link` | Create a text link anchored to a regex match in the source note's text |
 | `set_value` | Set an attribute value on one or more notes |
-| `do` | Execute Tinderbox action code on one or more notes |
+| `do` | Execute Tinderbox action code on one or more notes; reports note counts before/after so destructive effects are visible |
 | `evaluate` | Evaluate a Tinderbox expression in the context of a note |
 | `get_view` | Capture a screenshot of the document's current view |
 | `get_reference` | Retrieve detailed Tinderbox reference documentation by topic |
@@ -182,7 +182,7 @@ The test suite requires Tinderbox to be running with at least one document open.
 bundle exec rake test
 ```
 
-The suite includes 69 tests covering all tools, the AppleScript helper, and cross-tool consistency checks. Test notes are prefixed with `[MCP-TEST]` and cleaned up automatically.
+The suite includes 72 tests covering all tools, the AppleScript helper, and cross-tool consistency checks. Test notes are prefixed with `[MCP-TEST]` and cleaned up automatically.
 
 ## Architecture
 
